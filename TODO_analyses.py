@@ -14,7 +14,7 @@ training_data_file.close()
 nlp = spacy.load('en_core_web_sm')
 doc = nlp(training_data)
 
-which_exercise = [3]
+which_exercise = [5]
 
 # 1 -----------------------
 if 1 in which_exercise:
@@ -146,12 +146,45 @@ if 3 in which_exercise:
     bigram_token_frequencies.update(bigram_token)
     trigram_token_frequencies.update(trigram_token)
 
-most_common_bigram_POS = bigram_POS_frequencies.most_common(3)
-most_common_trigram_POS =  trigram_POS_frequencies.most_common(3)
-most_common_bigram_token = bigram_token_frequencies.most_common(3)
-most_common_trigram_token = trigram_token_frequencies.most_common(3)
-print(f"Token bigrams:\n {most_common_bigram_POS } \n Token trigrams: \n {most_common_trigram_POS } \n POS bigrams: \n {most_common_bigram_token} \n POS trigrams: \n {most_common_trigram_token} \n")
+    most_common_bigram_POS = bigram_POS_frequencies.most_common(3)
+    most_common_trigram_POS =  trigram_POS_frequencies.most_common(3)
+    most_common_bigram_token = bigram_token_frequencies.most_common(3)
+    most_common_trigram_token = trigram_token_frequencies.most_common(3)
+    print(f"Token bigrams:\n {most_common_bigram_POS } \n Token trigrams: \n {most_common_trigram_POS } \n POS bigrams: \n {most_common_bigram_token} \n POS trigrams: \n {most_common_trigram_token} \n")
+
+
+# 4.	Lemmatization (1 point)
+# Provide an example for a lemma that occurs in more than two inflections in the dataset. 
+# Lemma:
+# Inflected Forms: 
+# Example sentences for each form: 
 
 
 
+#-----------
+if 4 in which_exercise:
+    def find3inflictions(doc):
+        tokens = {}
+        sentences = {}
+        for sentence in doc.sents:
+            for token in sentence:
+                if (token.lemma_ != token.text): #then there is an infiction
+                    if token.lemma_ not in tokens.keys():
+                        tokens[token.lemma_] = [token.text]
+                        sentences[token.lemma_] = [sentence]
+                    else:
+                        # if infliction did not exist, add to list
+                        if token.text not in tokens[token.lemma_]:
+                            tokens[token.lemma_].append(token.text)
+                            sentences[token.lemma_].append(sentence)
+                    if len(tokens[token.lemma_]) == 3:
+                        return token.lemma_, tokens[token.lemma_], sentences[token.lemma_]
+        return None
+
+    lemma, words, sentences = find3inflictions(doc)  
+    print(lemma)
+    print(words)
+    print(f"Lemma: {lemma},\n Inflected Forms: {words}, \n Example sentences for each form: \n {sentences}")
+
+#--- 
 
