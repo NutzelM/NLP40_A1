@@ -14,7 +14,7 @@ training_data_file.close()
 nlp = spacy.load('en_core_web_sm')
 doc = nlp(training_data)
 
-which_exercise = [5]
+which_exercise = [1,2,3,4,5] # you can change this to only run one or less for efficiency :) 
 
 # 1 -----------------------
 if 1 in which_exercise:
@@ -187,4 +187,17 @@ if 4 in which_exercise:
     print(f"Lemma: {lemma},\n Inflected Forms: {words}, \n Example sentences for each form: \n {sentences}")
 
 #--- 
+if 5 in which_exercise:
+    freq_ents = Counter()
+    freq_labels = Counter()
+    for sentence in doc.sents:
+        for ent in sentence.ents:
+            freq_ents.update([ent.text])
+            freq_labels.update([ent.label_])
+        num_ents = len(freq_ents)
+        num_labels = len(freq_labels)
+    print(f"Number of named entities: {num_ents}, \n Number of different entity labels:  {num_labels}")
 
+# it still counts enter (\\) as entity and i dunno whyy
+    # print(freq_ents)
+    # print(freq_labels)
