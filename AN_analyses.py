@@ -10,12 +10,12 @@ pd.set_option('display.max_columns', None)
 # Run with arguments, for example: --exercise 3
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
-parser.add_argument('--exercise', default='6')
+parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
+parser.add_argument('--exercise', default='all')
 
 def get_words_data(text):
     words, lens = [], []
     for token in text:
-        #if token.is_stop != True and token.is_punct != True:
         if token.is_punct != True:
             words.append(token.text)
             lens.append(len(token.text))
@@ -131,6 +131,30 @@ def ner():
         print('Named entities: ', [ent.text for ent in sentence.ents])
         if i==4: break
 
+def explore_dataset():
+    text = 'Both China and the Philippines flexed their muscles on Wednesday.'
+    target = 'flexed their muscles'
+    target_pos = text.find(target)
+    print('Start and offset for target "' + target + '": ' + str(target_pos) + ' ' + str(target_pos + len(target)))
+
+    target = 'flexed'
+    target_pos = text.find(target)
+    print('Start and offset for target "' + target + '": ' + str(target_pos) + ' ' + str(target_pos + len(target)))
+
+def basic_stat():
+    wiki_data = pd.read_csv(args.data_dir_stat + "WikiNews_Train.tsv", sep='\t', header=None, usecols=[4,9,10])
+    wiki_data.columns =['target', 'bin', 'prob']
+    #7746 in total
+    print('Number of instances labeled with 0: %i' % len(wiki_data[wiki_data.bin == 0]))
+    print('Number of instances labeled with 1: %i' % len(wiki_data[wiki_data.bin == 1]))
+    print('Min, max, median, mean, and stdev of the probabilistic label: %.2f, %.2f, %.2f, %.2f, %.2f' % (
+        wiki_data.prob.min(), wiki_data.prob.max(), wiki_data.prob.median(), wiki_data.prob.mean(), wiki_data.prob.std()
+    ))
+    targets = wiki_data.target.apply(nlp)
+    ntokens = [get_words_data(target)[0] for target in targets]
+    print('Number of instances consisting of more than one token: %i' % len([i for i in ntokens if i>1]))
+    print('Maximum number of tokens for an instance: %i' % max(ntokens))
+
 if __name__ == '__main__':
     """
         `Data Analysis`
@@ -139,15 +163,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args_dict = vars(args)
 
-    if args.exercise == '6':
-        exercise = [1, 2, 3, 4, 5]
+    if args.exercise == 'all':
+        exercise = range(1, 8)
     else:
         exercise = [int(args.exercise)]
 
     # Load the data
-    data_file = open(args.data_dir + "sentences.txt", encoding="utf8")
-    #data = data_file.read().replace('\n', '').replace('\\"', '')
-    data = data_file.read()
+    data_file = open(args.data_dir + "sentences.txt", encoding="utf8", errors='ignore')
+    data = data_file.read().replace('\n', '')
     data_file.close()
 
     # Load English tokenizer, tagger, parser and NER
@@ -155,7 +178,8 @@ if __name__ == '__main__':
     doc = nlp(data)
 
     # Load function names for each exercise
-    functions = {1: tokenization, 2: words, 3: ngrams, 4: lemmatization, 5: ner}
+    functions = {1: tokenization, 2: words, 3: ngrams, 4: lemmatization, 5: ner,
+                 6: explore_dataset, 7: basic_stat}
 
     for ex in exercise:
         functions[ex]()
