@@ -3,6 +3,7 @@ import spacy
 import numpy as np
 import pandas as pd
 from collections import Counter
+from wordfreq import zipf_frequency
 
 # Pandas settings
 pd.set_option('display.max_columns', None)
@@ -11,7 +12,7 @@ pd.set_option('display.max_columns', None)
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
 parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
-parser.add_argument('--exercise', default='all')
+parser.add_argument('--exercise', default='8')
 
 def get_words_data(text):
     words, lens = [], []
@@ -142,18 +143,21 @@ def explore_dataset():
     print('Start and offset for target "' + target + '": ' + str(target_pos) + ' ' + str(target_pos + len(target)))
 
 def basic_stat():
-    wiki_data = pd.read_csv(args.data_dir_stat + "WikiNews_Train.tsv", sep='\t', header=None, usecols=[4,9,10])
-    wiki_data.columns =['target', 'bin', 'prob']
     #7746 in total
     print('Number of instances labeled with 0: %i' % len(wiki_data[wiki_data.bin == 0]))
     print('Number of instances labeled with 1: %i' % len(wiki_data[wiki_data.bin == 1]))
     print('Min, max, median, mean, and stdev of the probabilistic label: %.2f, %.2f, %.2f, %.2f, %.2f' % (
         wiki_data.prob.min(), wiki_data.prob.max(), wiki_data.prob.median(), wiki_data.prob.mean(), wiki_data.prob.std()
     ))
-    targets = wiki_data.target.apply(nlp)
-    ntokens = [get_words_data(target)[0] for target in targets]
-    print('Number of instances consisting of more than one token: %i' % len([i for i in ntokens if i>1]))
-    print('Maximum number of tokens for an instance: %i' % max(ntokens))
+    print('Number of instances consisting of more than one token: %i' % len(wiki_data[wiki_data.ntokens != 1]))
+    print('Maximum number of tokens for an instance: %i' % max(wiki_data.ntokens))
+
+def ling_char():
+    # Filter to take only #tokens = 1 and at least one complex annotation
+    sub_wiki = wiki_data[(wiki_data.ntokens == 1) & (wiki_data.cannotators > 1)]
+    sub_wiki['len_tokens'] = sub_wiki.tokens.apply(lambda x: len(x[0]))
+    sub_wiki['freq_tokens'] = sub_wiki.tokens.apply(lambda x: zipf_frequency(str(x[0]), 'en'))
+    print(sub_wiki)
 
 if __name__ == '__main__':
     """
@@ -164,7 +168,7 @@ if __name__ == '__main__':
     args_dict = vars(args)
 
     if args.exercise == 'all':
-        exercise = range(1, 8)
+        exercise = range(1, 9)
     else:
         exercise = [int(args.exercise)]
 
@@ -177,9 +181,16 @@ if __name__ == '__main__':
     nlp = spacy.load("en_core_web_sm")
     doc = nlp(data)
 
+    # Load Wiki Data
+    wiki_data = pd.read_csv(args.data_dir_stat + "WikiNews_Train.tsv", sep='\t', header=None, usecols=[4, 7, 8, 9, 10])
+    wiki_data.columns = ['target', 'cna', 'cnna',  'bin', 'prob']
+    wiki_data['cannotators'] = wiki_data.cna + wiki_data.cnna
+    wiki_data['tokens'] = wiki_data.target.apply(lambda x: nlp.tokenizer(x))
+    wiki_data['ntokens'] = wiki_data.target.apply(lambda x: len(nlp.tokenizer(x)))
+
     # Load function names for each exercise
     functions = {1: tokenization, 2: words, 3: ngrams, 4: lemmatization, 5: ner,
-                 6: explore_dataset, 7: basic_stat}
+                 6: explore_dataset, 7: basic_stat, 8: ling_char}
 
     for ex in exercise:
         functions[ex]()
