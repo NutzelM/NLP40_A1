@@ -1,9 +1,11 @@
 import argparse
 import spacy
+import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from collections import Counter
-from wordfreq import zipf_frequency
+from wordfreq import word_frequency
 
 # Pandas settings
 pd.set_option('display.max_columns', None)
@@ -13,6 +15,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
 parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
 parser.add_argument('--exercise', default='8')
+
+#Figure settings
+fig_folder = "images/"
 
 def get_words_data(text):
     words, lens = [], []
@@ -132,6 +137,13 @@ def ner():
         print('Named entities: ', [ent.text for ent in sentence.ents])
         if i==4: break
 
+def process_wiki():
+    global wiki_data
+    wiki_data.columns = ['target', 'cna', 'cnna', 'bin', 'prob']
+    wiki_data['cannotators'] = wiki_data.cna + wiki_data.cnna
+    wiki_data['tokens'] = wiki_data.target.apply(lambda x: nlp(x))
+    wiki_data['ntokens'] = wiki_data.tokens.apply(lambda x: len(x))
+
 def explore_dataset():
     text = 'Both China and the Philippines flexed their muscles on Wednesday.'
     target = 'flexed their muscles'
@@ -152,12 +164,35 @@ def basic_stat():
     print('Number of instances consisting of more than one token: %i' % len(wiki_data[wiki_data.ntokens != 1]))
     print('Maximum number of tokens for an instance: %i' % max(wiki_data.ntokens))
 
+def save_scatter(x, y, xlabel, ylabel, title, plot_name):
+    if not os.path.exists(fig_folder):
+        os.makedirs(fig_folder)
+    fig = plt.figure(figsize=(8, 5))
+    plt.scatter(x, y)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.show()
+    fig.savefig(fig_folder + plot_name, dpi=fig.dpi)
+
 def ling_char():
+    global wiki_data
     # Filter to take only #tokens = 1 and at least one complex annotation
-    sub_wiki = wiki_data[(wiki_data.ntokens == 1) & (wiki_data.cannotators > 1)]
-    sub_wiki['len_tokens'] = sub_wiki.tokens.apply(lambda x: len(x[0]))
-    sub_wiki['freq_tokens'] = sub_wiki.tokens.apply(lambda x: zipf_frequency(str(x[0]), 'en'))
-    print(sub_wiki)
+    wiki_data = wiki_data[(wiki_data.ntokens == 1) & (wiki_data.cannotators > 1)]
+    wiki_data['len_tokens'] = wiki_data.tokens.apply(lambda x: len(x[0]))
+    wiki_data['freq_tokens'] = wiki_data.tokens.apply(lambda x: word_frequency(str(x[0]), 'en'))
+    wiki_data['pos_tag'] = wiki_data.tokens.apply(lambda x: x[-1].pos_)
+    print(len(wiki_data))
+
+    print('Pearson correlation length and complexity: ', round(wiki_data.len_tokens.corr(wiki_data.prob),2))
+    print('Pearson correlation frequency and complexity: ', round(wiki_data.freq_tokens.corr(wiki_data.prob), 2))
+
+    save_scatter(wiki_data.len_tokens, wiki_data.prob, 'length of tokens', 'probabilistic complexity',
+                 'Probabilistic complexity by length of tokens', 'len_tokens_prob_scatter.png')
+    save_scatter(wiki_data.freq_tokens, wiki_data.prob, 'frequency of tokens', 'probabilistic complexity',
+                 'Probabilistic complexity by frequency of tokens', 'freq_tokens_prob_scatter.png')
+    save_scatter(wiki_data.pos_tag, wiki_data.prob, 'POS tag', 'probabilistic complexity',
+                 'Probabilistic complexity by POS tags', 'pos_tags_prob_scatter.png')
 
 if __name__ == '__main__':
     """
@@ -181,12 +216,11 @@ if __name__ == '__main__':
     nlp = spacy.load("en_core_web_sm")
     doc = nlp(data)
 
-    # Load Wiki Data
-    wiki_data = pd.read_csv(args.data_dir_stat + "WikiNews_Train.tsv", sep='\t', header=None, usecols=[4, 7, 8, 9, 10])
-    wiki_data.columns = ['target', 'cna', 'cnna',  'bin', 'prob']
-    wiki_data['cannotators'] = wiki_data.cna + wiki_data.cnna
-    wiki_data['tokens'] = wiki_data.target.apply(lambda x: nlp.tokenizer(x))
-    wiki_data['ntokens'] = wiki_data.target.apply(lambda x: len(nlp.tokenizer(x)))
+    # Load and Process Wiki Data
+    if any(ex in range(7,9) for ex in exercise):
+        nlp = spacy.load("en_core_web_sm")
+        wiki_data = pd.read_csv(args.data_dir_stat + "WikiNews_Train.tsv", sep='\t', header=None, usecols=[4, 7, 8, 9, 10])
+        process_wiki()
 
     # Load function names for each exercise
     functions = {1: tokenization, 2: words, 3: ngrams, 4: lemmatization, 5: ner,
