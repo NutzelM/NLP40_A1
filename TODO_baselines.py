@@ -8,6 +8,8 @@ import numpy as np
 import random
 from collections import Counter
 from sklearn.metrics import accuracy_score
+from wordfreq import word_frequency
+
 
 from model.data_loader import DataLoader
 
@@ -24,7 +26,7 @@ def get_labels_in_array(labels):
         y_labels += row.replace("\n", "").split(" ")
     return y_labels
 
-def majority_baseline(train_sentences, train_labels, test_input, test_labels):
+def majority_baseline(train_labels, test_input, test_labels):
     y_test = get_labels_in_array(test_labels)
 
     # Determine the majority class based on the training data
@@ -42,7 +44,7 @@ def majority_baseline(train_sentences, train_labels, test_input, test_labels):
     accuracy = accuracy_score(y_test, predictions)
     return accuracy, predictions
 
-def random_baseline(train_sentences, train_labels, test_input, test_labels):
+def random_baseline(test_input, test_labels):
     y_test = get_labels_in_array(test_labels)
 
     accuracies = []
@@ -58,6 +60,34 @@ def random_baseline(train_sentences, train_labels, test_input, test_labels):
     # Calculate accuracy for the test input
     accuracy = np.mean(accuracies)
 
+    return accuracy, predictions
+
+def length_baseline(test_input, test_labels, len_threshold):
+    y_test = get_labels_in_array(test_labels)
+
+    # Get predictions
+    predictions = []
+    for instance in test_input:
+        tokens = instance.split(" ")
+        instance_predictions = [('C' if len(t) > len_threshold else 'N') for t in tokens]
+        predictions += instance_predictions
+
+    # Calculate accuracy for the test input
+    accuracy = accuracy_score(y_test, predictions)
+    return accuracy, predictions
+
+def frequency_baseline(test_input, test_labels, freq_threshold):
+    y_test = get_labels_in_array(test_labels)
+
+    # Get predictions
+    predictions = []
+    for instance in test_input:
+        tokens = instance.split(" ")
+        instance_predictions = [('C' if word_frequency(t, 'en') > freq_threshold else 'N') for t in tokens]
+        predictions += instance_predictions
+
+    # Calculate accuracy for the test input
+    accuracy = accuracy_score(y_test, predictions)
     return accuracy, predictions
 
 if __name__ == '__main__':
@@ -82,15 +112,39 @@ if __name__ == '__main__':
         test_labels = test_label_file.readlines()
 
     # Majority Baseline, Dev and Test:
-    majority_accuracy, majority_predictions = majority_baseline(dev_sentences, dev_labels, test_input, test_labels)
+    majority_accuracy, majority_predictions = majority_baseline(train_labels, dev_sentences, dev_labels)
     print('Accuracy on dev, majority baseline: %.2f' % majority_accuracy)
-    majority_accuracy, majority_predictions = majority_baseline(train_sentences, train_labels, test_input, test_labels)
+    majority_accuracy, majority_predictions = majority_baseline(train_labels, test_input, test_labels)
     print('Accuracy on test, majority baseline: %.2f' % majority_accuracy)
+    print("\n")
 
     # Random Baseline, Dev and Test:
-    random_accuracy, random_predictions = random_baseline(dev_sentences, dev_labels, test_input, test_labels)
-    print('Accuracy on dev, random baseline: %.2f' % random_accuracy)
-    random_accuracy, random_predictions = random_baseline(train_sentences, train_labels, test_input, test_labels)
-    print('Accuracy on test, random baseline: %.2f' % random_accuracy)
+    accuracy, predictions = random_baseline(dev_sentences, dev_labels)
+    print('Accuracy on dev, random baseline: %.2f' % accuracy)
+    accuracy, predictions = random_baseline(test_input, test_labels)
+    print('Accuracy on test, random baseline: %.2f' % accuracy)
+    print("\n")
+
+    # Length threshold, Dev and Test:
+    for threshold in range(1,21):
+        accuracy, predictions = length_baseline(dev_sentences, dev_labels, threshold)
+        print('Accuracy on dev, length threshold %i baseline: %.4f' % (threshold, accuracy))
+    print("\n")
+    for threshold in range(1, 21):
+        accuracy, predictions = length_baseline(test_input, test_labels, threshold)
+        print('Accuracy on test, length threshold %i baseline: %.4f' % (threshold, accuracy))
+    print("\n")
+
+    # Frequency threshold, Dev and Test:
+    for threshold in np.arange(0, 0.1, 0.005):
+        accuracy, predictions = frequency_baseline(dev_sentences, dev_labels, threshold)
+        print('Accuracy on dev, frequency threshold %.5f baseline: %.2f' % (threshold, accuracy))
+    print("\n")
+    # Run test just for best threshold 0.055
+    accuracy, predictions = frequency_baseline(test_input, test_labels, 0.055)
+    print('Accuracy on test, frequency threshold %i baseline: %.2f' % (threshold, accuracy))
+    print("\n")
+
+
 
     # TODO: output the predictions in a suitable way so that you can evaluate them
