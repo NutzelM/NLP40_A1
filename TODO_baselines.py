@@ -110,7 +110,7 @@ if __name__ == '__main__':
             accuracy, df_out = baseline(train_labels, datasets[env]['sentences'], datasets[env]['labels'], bsln, thresholds[bsln])
             print('Accuracy on %s, %s baseline: %.2f' % (env, bsln, accuracy))
             if env == 'test':
-                if not os.path.exists(test_out_path + bsln):
-                    os.makedirs(test_out_path + bsln)
-                df_out.to_csv(test_out_path + bsln + "/model_output.tsv", sep="\t", index=False, header=False)
+                if not os.path.exists(test_out_path + bsln + '_model'):
+                    os.makedirs(test_out_path + bsln + '_model')
+                df_out.to_csv(test_out_path + bsln + "_model/model_output.tsv", sep="\t", index=False, header=False)
         print('\n')
