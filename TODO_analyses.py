@@ -14,7 +14,7 @@ training_data_file.close()
 nlp = spacy.load('en_core_web_sm')
 doc = nlp(training_data)
 
-which_exercise = [5] # you can change this to only run one or less for efficiency :)
+which_exercise = [1,2,3] # you can change this to only run one or less for efficiency :)
 
 # 1 -----------------------
 if 1 in which_exercise:
