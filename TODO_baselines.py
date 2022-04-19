@@ -5,13 +5,12 @@
 # Frequency baseline: determines the class based on a frequency threshold
 
 import numpy as np
+import pandas as pd
 import random
+import os
 from collections import Counter
 from sklearn.metrics import accuracy_score
 from wordfreq import word_frequency
-
-
-from model.data_loader import DataLoader
 
 random.seed(3)
 
@@ -26,75 +25,46 @@ def get_labels_in_array(labels):
         y_labels += row.replace("\n", "").split(" ")
     return y_labels
 
-def majority_baseline(train_labels, test_input, test_labels):
+def get_model_class(train_labels, baseline = 'majority', threshold = 0, token = ''):
+    if baseline == 'majority':
+        y_train = get_labels_in_array(train_labels)
+        model_class = most_frequent(y_train)
+    elif baseline == 'random':
+        model_class = random.choice(['N', 'C'])
+    elif baseline == 'length':
+        model_class = 'C' if len(token) > threshold else 'N'
+    elif baseline == 'frequency':
+        model_class = 'C' if word_frequency(token, 'en') > threshold else 'N'
+
+    return model_class
+
+def baseline(train_labels, test_input, test_labels, baseline = 'majority', threshold = 0):
+    model_class = get_model_class(train_labels, 'majority') if baseline == 'majority' else ''
     y_test = get_labels_in_array(test_labels)
-
-    # Determine the majority class based on the training data
-    y_train = get_labels_in_array(train_labels)
-    majority_class = most_frequent(y_train)
-
-    # Get predictions
-    predictions = []
-    for instance in test_input:
-        tokens = instance.split(" ")
-        instance_predictions = [majority_class for t in tokens]
-        predictions += instance_predictions
-
-    # Calculate accuracy for the test input
-    accuracy = accuracy_score(y_test, predictions)
-    return accuracy, predictions
-
-def random_baseline(test_input, test_labels):
-    y_test = get_labels_in_array(test_labels)
+    nexp = 100 if baseline == 'random' else 1
 
     accuracies = []
-    for i in range(0,100):
+    # Run experiment
+    for i in range(0, nexp):
         # Get predictions
         predictions = []
+        words = []
         for instance in test_input:
             tokens = instance.split(" ")
-            instance_predictions = [random.choice(['N', 'C']) for t in tokens]
+            instance_predictions = [get_model_class(train_labels, baseline, threshold, t) if baseline != 'majority' else model_class for t in tokens]
             predictions += instance_predictions
+            words += tokens
         accuracies.append(accuracy_score(y_test, predictions))
 
     # Calculate accuracy for the test input
     accuracy = np.mean(accuracies)
 
-    return accuracy, predictions
+    # Build model_output dataframe
+    df_out = pd.DataFrame(data=np.array([words, y_test, predictions]).transpose())
+    return accuracy, df_out
 
-def length_baseline(test_input, test_labels, len_threshold):
-    y_test = get_labels_in_array(test_labels)
-
-    # Get predictions
-    predictions = []
-    for instance in test_input:
-        tokens = instance.split(" ")
-        instance_predictions = [('C' if len(t) > len_threshold else 'N') for t in tokens]
-        predictions += instance_predictions
-
-    # Calculate accuracy for the test input
-    accuracy = accuracy_score(y_test, predictions)
-    return accuracy, predictions
-
-def frequency_baseline(test_input, test_labels, freq_threshold):
-    y_test = get_labels_in_array(test_labels)
-
-    # Get predictions
-    predictions = []
-    for instance in test_input:
-        tokens = instance.split(" ")
-        instance_predictions = [('C' if word_frequency(t, 'en') > freq_threshold else 'N') for t in tokens]
-        predictions += instance_predictions
-
-    # Calculate accuracy for the test input
-    accuracy = accuracy_score(y_test, predictions)
-    return accuracy, predictions
-
-if __name__ == '__main__':
-    train_path = "data/preprocessed/train/"
-    dev_path = "data/preprocessed/val/"
-    test_path = "data/preprocessed/test/"
-
+def get_data():
+    global train_sentences, train_labels, dev_sentences, dev_labels, test_sentences, test_labels
     # Note: this loads all instances into memory. If you work with bigger files in the future, use an iterator instead.
     with open(train_path + "sentences.txt", encoding="utf8", errors='ignore') as sent_file:
         train_sentences = sent_file.readlines()
@@ -107,44 +77,40 @@ if __name__ == '__main__':
         dev_labels = dev_label_file.readlines()
 
     with open(test_path + "sentences.txt", encoding="utf8", errors='ignore') as test_file:
-        test_input = test_file.readlines()
+        test_sentences = test_file.readlines()
     with open(test_path + "labels.txt", encoding="utf8", errors='ignore') as test_label_file:
         test_labels = test_label_file.readlines()
 
-    # Majority Baseline, Dev and Test:
-    majority_accuracy, majority_predictions = majority_baseline(train_labels, dev_sentences, dev_labels)
-    print('Accuracy on dev, majority baseline: %.2f' % majority_accuracy)
-    majority_accuracy, majority_predictions = majority_baseline(train_labels, test_input, test_labels)
-    print('Accuracy on test, majority baseline: %.2f' % majority_accuracy)
-    print("\n")
+def run_threshold_exp():
+    experiments = {'length': range(1, 21), 'frequency': np.arange(0, 0.1, 0.005)}
 
-    # Random Baseline, Dev and Test:
-    accuracy, predictions = random_baseline(dev_sentences, dev_labels)
-    print('Accuracy on dev, random baseline: %.2f' % accuracy)
-    accuracy, predictions = random_baseline(test_input, test_labels)
-    print('Accuracy on test, random baseline: %.2f' % accuracy)
-    print("\n")
+    for bsln, thresholds in experiments.items():
+        print('Run threshold experiment for %s ......' % bsln)
+        for thrsh in thresholds:
+            accuracy, df_out = baseline(train_labels, dev_sentences, dev_labels, bsln, thrsh)
+            print('Accuracy on dev, %s threshold %.3f baseline: %.4f' % (bsln, thrsh, accuracy))
+        print("\n")
 
-    # Length threshold, Dev and Test:
-    for threshold in range(1,21):
-        accuracy, predictions = length_baseline(dev_sentences, dev_labels, threshold)
-        print('Accuracy on dev, length threshold %i baseline: %.4f' % (threshold, accuracy))
-    print("\n")
-    for threshold in range(1, 21):
-        accuracy, predictions = length_baseline(test_input, test_labels, threshold)
-        print('Accuracy on test, length threshold %i baseline: %.4f' % (threshold, accuracy))
-    print("\n")
+if __name__ == '__main__':
+    train_path = "data/preprocessed/train/"
+    dev_path = "data/preprocessed/val/"
+    test_path = "data/preprocessed/test/"
+    test_out_path = "experiments/"
 
-    # Frequency threshold, Dev and Test:
-    for threshold in np.arange(0, 0.1, 0.005):
-        accuracy, predictions = frequency_baseline(dev_sentences, dev_labels, threshold)
-        print('Accuracy on dev, frequency threshold %.5f baseline: %.2f' % (threshold, accuracy))
-    print("\n")
-    # Run test just for best threshold 0.055
-    accuracy, predictions = frequency_baseline(test_input, test_labels, 0.055)
-    print('Accuracy on test, frequency threshold %i baseline: %.2f' % (threshold, accuracy))
-    print("\n")
+    get_data()
+    run_threshold_exp()
 
+    # Run all baselines
+    datasets = {'dev': {'sentences': dev_sentences, 'labels': dev_labels},
+                'test': {'sentences': test_sentences, 'labels': test_labels}}
+    thresholds = {'majority': 0, 'random': 0, 'length': 8, 'frequency': 0.055}
 
-
-    # TODO: output the predictions in a suitable way so that you can evaluate them
+    for env in ['dev', 'test']:
+        for bsln in ['majority', 'random', 'length', 'frequency']:
+            accuracy, df_out = baseline(train_labels, datasets[env]['sentences'], datasets[env]['labels'], bsln, thresholds[bsln])
+            print('Accuracy on %s, %s baseline: %.2f' % (env, bsln, accuracy))
+            if env == 'test':
+                if not os.path.exists(test_out_path + bsln):
+                    os.makedirs(test_out_path + bsln)
+                df_out.to_csv(test_out_path + bsln + "/model_output.tsv", sep="\t", index=False, header=False)
+        print('\n')
