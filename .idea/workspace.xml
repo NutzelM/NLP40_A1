@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4e5420f3-a0e5-4b71-8c71-0dab952bcd35" name="Default Changelist" comment="Adjustment Word doc">
+    <list default="true" id="4e5420f3-a0e5-4b71-8c71-0dab952bcd35" name="Default Changelist" comment="Adjustments Word">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TODO_analyses.py" beforeDir="false" afterPath="$PROJECT_DIR$/TODO_analyses.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assignment 1_IntrotoNLP2022.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Assignment 1_IntrotoNLP2022.docx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +47,7 @@
       <recent name="$PROJECT_DIR$/data/preprocessed/val" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.TODO_analyses">
+  <component name="RunManager" selected="Python.build_vocab">
     <configuration name="TODO_analyses" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="intro2nlp_assignment1_code" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -159,8 +159,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.TODO_analyses" />
         <item itemvalue="Python.build_vocab" />
+        <item itemvalue="Python.TODO_analyses" />
         <item itemvalue="Python.evaluate" />
         <item itemvalue="Python.train" />
         <item itemvalue="Python.prepare_cwi" />
@@ -192,7 +192,14 @@
       <option name="project" value="LOCAL" />
       <updated>1650358379995</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Adjustments Word">
+      <created>1650360170214</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1650360170215</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -211,6 +218,18 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Adjustment Word doc" />
-    <option name="LAST_COMMIT_MESSAGE" value="Adjustment Word doc" />
+    <MESSAGE value="Adjustments Word" />
+    <option name="LAST_COMMIT_MESSAGE" value="Adjustments Word" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/build_vocab.py</url>
+          <line>14</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
