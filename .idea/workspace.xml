@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4e5420f3-a0e5-4b71-8c71-0dab952bcd35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/intro2nlp_assignment1_code.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/intro2nlp_assignment1_code.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="4e5420f3-a0e5-4b71-8c71-0dab952bcd35" name="Default Changelist" comment="Adjustment Word doc">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assignment 1_IntrotoNLP2022.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Assignment 1_IntrotoNLP2022.docx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TODO_analyses.py" beforeDir="false" afterPath="$PROJECT_DIR$/TODO_analyses.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/preprocessed/dataset_params.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/preprocessed/dataset_params.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -190,6 +185,14 @@
       <workItem from="1648712195025" duration="4281000" />
       <workItem from="1649078505569" duration="1471000" />
     </task>
+    <task id="LOCAL-00001" summary="Adjustment Word doc">
+      <created>1650358379995</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1650358379995</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -205,5 +208,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Adjustment Word doc" />
+    <option name="LAST_COMMIT_MESSAGE" value="Adjustment Word doc" />
   </component>
 </project>
