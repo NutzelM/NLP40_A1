@@ -50,7 +50,7 @@ def baseline(train_labels, test_input, test_labels, baseline = 'majority', thres
         predictions = []
         words = []
         for instance in test_input:
-            tokens = instance.split(" ")
+            tokens = instance.replace('\n','').split(" ")
             instance_predictions = [get_model_class(train_labels, baseline, threshold, t) if baseline != 'majority' else model_class for t in tokens]
             predictions += instance_predictions
             words += tokens
