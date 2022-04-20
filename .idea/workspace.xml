@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4e5420f3-a0e5-4b71-8c71-0dab952bcd35" name="Default Changelist" comment="Addition to 11">
+    <list default="true" id="4e5420f3-a0e5-4b71-8c71-0dab952bcd35" name="Default Changelist" comment="Additions word doc">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AN_analyses.py" beforeDir="false" afterPath="$PROJECT_DIR$/AN_analyses.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assignment 1_IntrotoNLP2022.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Assignment 1_IntrotoNLP2022.docx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TODO_analyses.py" beforeDir="false" afterPath="$PROJECT_DIR$/TODO_analyses.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/freq_tokens_prob_scatter.png" beforeDir="false" afterPath="$PROJECT_DIR$/images/freq_tokens_prob_scatter.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/len_tokens_prob_scatter.png" beforeDir="false" afterPath="$PROJECT_DIR$/images/len_tokens_prob_scatter.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/pos_tags_prob_scatter.png" beforeDir="false" afterPath="$PROJECT_DIR$/images/pos_tags_prob_scatter.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +47,7 @@
       <recent name="$PROJECT_DIR$/data/preprocessed/val" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.TODO_baselines">
+  <component name="RunManager" selected="Python.TODO_analyses">
     <configuration name="AN_analyses" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="intro2nlp_assignment1_code" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -66,6 +61,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/AN_analyses.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TODO_analyses" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="intro2nlp_assignment1_code" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TODO_analyses.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -138,35 +154,13 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="train" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="intro2nlp_assignment1_code" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.TODO_analyses" />
+        <item itemvalue="Python.AN_analyses" />
         <item itemvalue="Python.TODO_baselines" />
         <item itemvalue="Python.TODO_detailed_evaluation" />
         <item itemvalue="Python.evaluate" />
-        <item itemvalue="Python.train" />
-        <item itemvalue="Python.AN_analyses" />
       </list>
     </recent_temporary>
   </component>
@@ -209,7 +203,14 @@
       <option name="project" value="LOCAL" />
       <updated>1650373352040</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Additions word doc">
+      <created>1650389179750</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1650389179750</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -230,7 +231,8 @@
     <MESSAGE value="Adjustment Word doc" />
     <MESSAGE value="Adjustments Word" />
     <MESSAGE value="Addition to 11" />
-    <option name="LAST_COMMIT_MESSAGE" value="Addition to 11" />
+    <MESSAGE value="Additions word doc" />
+    <option name="LAST_COMMIT_MESSAGE" value="Additions word doc" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
