@@ -23,6 +23,8 @@ parser.add_argument('--model_dir', default='experiments/base_model/',
 parser.add_argument('--restore_file', default=None,
                     help="Optional, name of the file in --model_dir containing weights to reload before \
                     training")  # 'best' or 'train'
+parser.add_argument('--eval_metric', default='accuracy',
+                    help="Evaluation metric (accuracy/wa_f1)")
 
 
 def train(model, optimizer, loss_fn, data_iterator, metrics, params, num_steps):
@@ -86,7 +88,7 @@ def train(model, optimizer, loss_fn, data_iterator, metrics, params, num_steps):
     logging.info("- Train metrics: " + metrics_string)
 
 
-def train_and_evaluate(model, train_data, val_data, optimizer, loss_fn, metrics, params, model_dir, restore_file=None):
+def train_and_evaluate(model, train_data, val_data, optimizer, loss_fn, metrics, params, model_dir, eval_metric, restore_file=None):
     """Train the model and evaluate every epoch.
 
     Args:
@@ -107,7 +109,7 @@ def train_and_evaluate(model, train_data, val_data, optimizer, loss_fn, metrics,
         logging.info("Restoring parameters from {}".format(restore_path))
         utils.load_checkpoint(restore_path, model, optimizer)
 
-    best_val_acc = 0.0
+    best_val_metric = 0.0
 
     for epoch in range(params.num_epochs):
         # Run one epoch
@@ -127,8 +129,8 @@ def train_and_evaluate(model, train_data, val_data, optimizer, loss_fn, metrics,
         val_metrics = evaluate(
             model, loss_fn, val_data_iterator, metrics, num_steps)
 
-        val_acc = val_metrics['accuracy']
-        is_best = val_acc >= best_val_acc
+        val_metric = val_metrics[eval_metric]
+        is_best = val_metric >= best_val_metric
 
         # Save weights
         utils.save_checkpoint({'epoch': epoch + 1,
@@ -139,8 +141,8 @@ def train_and_evaluate(model, train_data, val_data, optimizer, loss_fn, metrics,
 
         # If best_eval, best_save_path
         if is_best:
-            logging.info("- Found new best accuracy")
-            best_val_acc = val_acc
+            logging.info("- Found new best %s" % eval_metric)
+            best_val_metric = val_metric
 
             # Save best val metrics in a json file in the model directory
             best_json_path = os.path.join(
@@ -199,4 +201,4 @@ if __name__ == '__main__':
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
     train_and_evaluate(model, train_data, val_data, optimizer, loss_fn, metrics, params, args.model_dir,
-                       args.restore_file)
+                       args.eval_metric, args.restore_file)

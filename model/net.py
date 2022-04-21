@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from sklearn.metrics import f1_score
 
 class Net(nn.Module):
     """
@@ -141,9 +141,21 @@ def accuracy(outputs, labels):
     # compare outputs with labels and divide by number of tokens (excluding PADding tokens)
     return np.sum(outputs == labels)/float(np.sum(mask))
 
+def wa_f1(outputs, labels):
+    # reshape labels to give a flat vector of length batch_size*seq_len
+    labels = labels.ravel()
+
+    # since PADding tokens have label -1, we can generate a mask to exclude the loss from those terms
+    mask = (labels >= 0)
+
+    # np.argmax gives us the class predicted for each token by the model
+    outputs = np.argmax(outputs, axis=1)
+
+    return round(f1_score(labels, outputs, average='weighted'),2)
 
 # maintain all metrics required in this dictionary- these are used in the training and evaluation loops
 metrics = {
     'accuracy': accuracy,
+    'wa_f1': wa_f1
     # could add more metrics such as accuracy for each token type
 }
