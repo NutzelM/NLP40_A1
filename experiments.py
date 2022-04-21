@@ -9,8 +9,6 @@ import utils
 
 PYTHON = sys.executable
 parser = argparse.ArgumentParser()
-parser.add_argument('--parent_dir_lr', default='experiments/hyperparams/learning_rate/',
-                    help='Directory containing params.json')
 parser.add_argument('--data_dir', default='data/preprocessed/', help="Directory containing the dataset")
 parser.add_argument('--eval_metric', default='wa_f1', help="Evaluation metric (accuracy/wa_f1)")
 
@@ -45,26 +43,41 @@ def get_wa_f1(dir_exp, eval_metric):
     return round(getattr(metrics, eval_metric, None),2)
 
 if __name__ == "__main__":
-    # Load the "reference" parameters from parent_dir json file
     args = parser.parse_args()
-    json_path = os.path.join(args.parent_dir_lr, 'params.json')
-    assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
-    params = utils.Params(json_path)
+    experiments = {
+        'learning_rate': {
+            'parent_dir': 'experiments/hyperparams/learning_rate/',
+            'param_list': [1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 0.1],
+            'hp_name': 'Learning Rates',
+            'plot_title': 'Weighted average F1 score for different learning rates'
+        },
+        'embedding_dim': {
+            'parent_dir': 'experiments/hyperparams/embedding_dim/',
+            'param_list': range(10, 90, 10),
+            'hp_name': 'Embedding dimensions',
+            'plot_title': 'Weighted average F1 score for different embedding dimensions'
+        }
+    }
 
-    # Perform hypersearch over learning rate
-    learning_rates = [1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 0.1]
-    wa_f1s = []
+    for exp_name, exp in experiments.items():
+        print('---------------Start %s experiment---------------' % exp_name)
+        json_path = os.path.join(exp['parent_dir'], 'params.json')
+        assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
+        params = utils.Params(json_path)
 
-    for learning_rate in learning_rates:
-        # Modify the relevant parameter in params
-        params.learning_rate = learning_rate
+        # Perform hyperparameter search
+        wa_f1s = []
 
-        # Launch job (name has to be unique)
-        job_name = "learning_rate_{}".format(learning_rate)
-        launch_training_job(args.parent_dir_lr, args.data_dir, job_name, params, args.eval_metric)
+        for hyperpar in exp['param_list']:
+            # Modify the relevant parameter in params
+            setattr(params, exp_name, hyperpar)
 
-        # Get output weighted average F1 (wa_f1) from metrics_val_best_weights.json
-        wa_f1s.append(get_wa_f1(args.parent_dir_lr + job_name, args.eval_metric))
+            # Launch job (name has to be unique)
+            job_name = (exp_name+"_{}").format(hyperpar)
+            launch_training_job(exp['parent_dir'], args.data_dir, job_name, params, args.eval_metric)
 
-    utils.save_plot([str(lr) for lr in learning_rates], wa_f1s, 'Learning Rates', 'Weighted Average F1',
-                 'Weighted average F1 score for different learning rates', 'learning_rates.png', 'images/hyperparams/', 'bar')
+            # Get output weighted average F1 (wa_f1) from metrics_val_best_weights.json
+            wa_f1s.append(get_wa_f1(exp['parent_dir'] + job_name, args.eval_metric))
+
+        utils.save_plot([str(hp) for hp in exp['param_list']], wa_f1s, exp['hp_name'], 'Weighted Average F1',
+                        exp['plot_title'], exp_name+'.png', 'images/hyperparams/', 'bar')
