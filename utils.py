@@ -2,8 +2,8 @@ import json
 import logging
 import os
 import shutil
-
 import torch
+import matplotlib.pyplot as plt
 
 
 class Params():
@@ -142,3 +142,14 @@ def load_checkpoint(checkpoint, model, optimizer=None):
         optimizer.load_state_dict(checkpoint['optim_dict'])
 
     return checkpoint
+
+def save_scatter(x, y, xlabel, ylabel, title, plot_name, fig_folder):
+    if not os.path.exists(fig_folder):
+        os.makedirs(fig_folder)
+    fig = plt.figure(figsize=(8, 5))
+    plt.scatter(x, y)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.show()
+    fig.savefig(fig_folder + plot_name, dpi=fig.dpi)

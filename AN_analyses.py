@@ -3,7 +3,7 @@ import spacy
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import utils
 from collections import Counter
 from wordfreq import word_frequency
 
@@ -15,9 +15,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
 parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
 parser.add_argument('--exercise', default='all')
-
-#Figure settings
-fig_folder = "images/"
 
 def get_words_data(text):
     words, lens = [], []
@@ -164,17 +161,6 @@ def basic_stat():
     print('Number of instances consisting of more than one token: %i' % len(wiki_data[wiki_data.ntokens != 1]))
     print('Maximum number of tokens for an instance: %i' % max(wiki_data.ntokens))
 
-def save_scatter(x, y, xlabel, ylabel, title, plot_name):
-    if not os.path.exists(fig_folder):
-        os.makedirs(fig_folder)
-    fig = plt.figure(figsize=(8, 5))
-    plt.scatter(x, y)
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.show()
-    fig.savefig(fig_folder + plot_name, dpi=fig.dpi)
-
 def ling_char():
     global wiki_data
     # Filter to take only #tokens = 1 and at least one complex annotation
@@ -187,12 +173,12 @@ def ling_char():
     print('Pearson correlation length and complexity: ', round(wiki_data.len_tokens.corr(wiki_data.prob),2))
     print('Pearson correlation frequency and complexity: ', round(wiki_data.freq_tokens.corr(wiki_data.prob), 2))
 
-    save_scatter(wiki_data.len_tokens, wiki_data.prob, 'length of tokens', 'probabilistic complexity',
-                 'Probabilistic complexity by length of tokens', 'len_tokens_prob_scatter.png')
-    save_scatter(wiki_data.freq_tokens, wiki_data.prob, 'frequency of tokens', 'probabilistic complexity',
-                 'Probabilistic complexity by frequency of tokens', 'freq_tokens_prob_scatter.png')
-    save_scatter(wiki_data.pos_tag, wiki_data.prob, 'POS tag', 'probabilistic complexity',
-                 'Probabilistic complexity by POS tags', 'pos_tags_prob_scatter.png')
+    utils.save_scatter(wiki_data.len_tokens, wiki_data.prob, 'length of tokens', 'probabilistic complexity',
+                 'Probabilistic complexity by length of tokens', 'len_tokens_prob_scatter.png', 'images/')
+    utils.save_scatter(wiki_data.freq_tokens, wiki_data.prob, 'frequency of tokens', 'probabilistic complexity',
+                 'Probabilistic complexity by frequency of tokens', 'freq_tokens_prob_scatter.png', 'images/')
+    utils.save_scatter(wiki_data.pos_tag, wiki_data.prob, 'POS tag', 'probabilistic complexity',
+                 'Probabilistic complexity by POS tags', 'pos_tags_prob_scatter.png', 'images/')
 
 if __name__ == '__main__':
     """
