@@ -143,11 +143,18 @@ def load_checkpoint(checkpoint, model, optimizer=None):
 
     return checkpoint
 
-def save_scatter(x, y, xlabel, ylabel, title, plot_name, fig_folder):
+def save_plot(x, y, xlabel, ylabel, title, plot_name, fig_folder, plot_type='scatter'):
     if not os.path.exists(fig_folder):
         os.makedirs(fig_folder)
-    fig = plt.figure(figsize=(8, 5))
-    plt.scatter(x, y)
+    fig = plt.figure(figsize=(10, 5))
+    if plot_type == 'scatter':
+        plt.scatter(x, y)
+    elif plot_type == 'bar':
+        plt.bar(x, y, 0.4)
+        for index, value in enumerate(y):
+            plt.text(index, value, str(value), ha='center', fontsize=12)
+    else:
+        plt.plot(x, y)
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

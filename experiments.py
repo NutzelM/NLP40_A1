@@ -37,6 +37,12 @@ def launch_training_job(parent_dir, data_dir, job_name, params, eval_metric):
     print(cmd)
     check_call(cmd, shell=True)
 
+# Get weighted average F1 score from metrics JSON for experiment in dir_exp
+def get_wa_f1(dir_exp, eval_metric):
+    json_metrics_path = os.path.join(dir_exp, 'metrics_val_best_weights.json')
+    assert os.path.isfile(json_metrics_path), "No json configuration file found at {}".format(json_metrics_path)
+    metrics = utils.Params(json_metrics_path)
+    return round(getattr(metrics, eval_metric, None),2)
 
 if __name__ == "__main__":
     # Load the "reference" parameters from parent_dir json file
@@ -45,7 +51,7 @@ if __name__ == "__main__":
     assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
     params = utils.Params(json_path)
 
-    # Perform hypersearch over one parameter
+    # Perform hypersearch over learning rate
     learning_rates = [1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 0.1]
     wa_f1s = []
 
@@ -58,3 +64,7 @@ if __name__ == "__main__":
         launch_training_job(args.parent_dir_lr, args.data_dir, job_name, params, args.eval_metric)
 
         # Get output weighted average F1 (wa_f1) from metrics_val_best_weights.json
+        wa_f1s.append(get_wa_f1(args.parent_dir_lr + job_name, args.eval_metric))
+
+    utils.save_plot([str(lr) for lr in learning_rates], wa_f1s, 'Learning Rates', 'Weighted Average F1',
+                 'Weighted average F1 score for different learning rates', 'learning_rates.png', 'images/hyperparams/', 'bar')

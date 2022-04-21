@@ -173,11 +173,11 @@ def ling_char():
     print('Pearson correlation length and complexity: ', round(wiki_data.len_tokens.corr(wiki_data.prob),2))
     print('Pearson correlation frequency and complexity: ', round(wiki_data.freq_tokens.corr(wiki_data.prob), 2))
 
-    utils.save_scatter(wiki_data.len_tokens, wiki_data.prob, 'length of tokens', 'probabilistic complexity',
+    utils.save_plot(wiki_data.len_tokens, wiki_data.prob, 'length of tokens', 'probabilistic complexity',
                  'Probabilistic complexity by length of tokens', 'len_tokens_prob_scatter.png', 'images/')
-    utils.save_scatter(wiki_data.freq_tokens, wiki_data.prob, 'frequency of tokens', 'probabilistic complexity',
+    utils.save_plot(wiki_data.freq_tokens, wiki_data.prob, 'frequency of tokens', 'probabilistic complexity',
                  'Probabilistic complexity by frequency of tokens', 'freq_tokens_prob_scatter.png', 'images/')
-    utils.save_scatter(wiki_data.pos_tag, wiki_data.prob, 'POS tag', 'probabilistic complexity',
+    utils.save_plot(wiki_data.pos_tag, wiki_data.prob, 'POS tag', 'probabilistic complexity',
                  'Probabilistic complexity by POS tags', 'pos_tags_prob_scatter.png', 'images/')
 
 if __name__ == '__main__':
