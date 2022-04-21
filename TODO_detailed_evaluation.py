@@ -48,8 +48,9 @@ def find_metric(df):
     nn = np.sum(df.gold == 'N')
     nc = np.sum(df.gold == 'C')
     wa_f1 = round((f1mes_N * nn + f1mes_C * nc) / (nn + nc),2)
+    ma_f1 = round((f1mes_N + f1mes_C) / 2,2)
     
-    return [pr_N, rec_N, f1mes_N, pr_C, rec_C, f1mes_C, wa_f1]
+    return [pr_N, rec_N, f1mes_N, pr_C, rec_C, f1mes_C, wa_f1, ma_f1]
 
 if __name__ == '__main__':
     """
