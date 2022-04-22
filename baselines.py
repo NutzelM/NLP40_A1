@@ -1,9 +1,13 @@
+
+#
 # Implement four baselines for the task.
 # Majority baseline: always assigns the majority class of the training data
 # Random baseline: randomly assigns one of the classes. Make sure to set a random seed and average the accuracy over 100 runs.
 # Length baseline: determines the class based on a length threshold
 # Frequency baseline: determines the class based on a frequency threshold
 
+import argparse
+import spacy
 import numpy as np
 import pandas as pd
 import random
@@ -11,6 +15,11 @@ import os
 from collections import Counter
 from sklearn.metrics import accuracy_score
 from wordfreq import word_frequency
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
+parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
+parser.add_argument('--exercise', default='all')
 
 random.seed(3)
 
@@ -91,14 +100,10 @@ if __name__ == '__main__':
         process_wiki()
 
     # Load function names for each exercise
-    functions = {1: tokenization, 2: words, 3: ngrams, 4: lemmatization, 5: ner,
-                 6: explore_dataset, 7: basic_stat, 8: ling_char}
-
-    for ex in exercise:
-        functions[ex]()
+    functions = {6: explore_dataset, 7: basic_stat, 8: ling_char}
 
 
-#Nextpart --> Andreea look at this!
+#Nextpart (original) --> Andreea look at this!
 
 
 # Each baseline returns predictions for the test data. The length and frequency baselines determine a threshold using the development data.
