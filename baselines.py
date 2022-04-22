@@ -1,9 +1,13 @@
+
+#
 # Implement four baselines for the task.
 # Majority baseline: always assigns the majority class of the training data
 # Random baseline: randomly assigns one of the classes. Make sure to set a random seed and average the accuracy over 100 runs.
 # Length baseline: determines the class based on a length threshold
 # Frequency baseline: determines the class based on a frequency threshold
 
+import argparse
+import spacy
 import numpy as np
 import pandas as pd
 import random
@@ -12,7 +16,95 @@ from collections import Counter
 from sklearn.metrics import accuracy_score
 from wordfreq import word_frequency
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
+parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
+parser.add_argument('--exercise', default='all')
+
 random.seed(3)
+
+#part B
+
+def process_wiki():
+    global wiki_data
+    wiki_data.columns = ['target', 'cna', 'cnna', 'bin', 'prob']
+    wiki_data['cannotators'] = wiki_data.cna + wiki_data.cnna
+    wiki_data['tokens'] = wiki_data.target.apply(lambda x: nlp(x))
+    wiki_data['ntokens'] = wiki_data.tokens.apply(lambda x: len(x))
+
+def explore_dataset():
+    text = 'Both China and the Philippines flexed their muscles on Wednesday.'
+    target = 'flexed their muscles'
+    target_pos = text.find(target)
+    print('Start and offset for target "' + target + '": ' + str(target_pos) + ' ' + str(target_pos + len(target)))
+
+    target = 'flexed'
+    target_pos = text.find(target)
+    print('Start and offset for target "' + target + '": ' + str(target_pos) + ' ' + str(target_pos + len(target)))
+
+def basic_stat():
+    #7746 in total
+    print('Number of instances labeled with 0: %i' % len(wiki_data[wiki_data.bin == 0]))
+    print('Number of instances labeled with 1: %i' % len(wiki_data[wiki_data.bin == 1]))
+    print('Min, max, median, mean, and stdev of the probabilistic label: %.2f, %.2f, %.2f, %.2f, %.2f' % (
+        wiki_data.prob.min(), wiki_data.prob.max(), wiki_data.prob.median(), wiki_data.prob.mean(), wiki_data.prob.std()
+    ))
+    print('Number of instances consisting of more than one token: %i' % len(wiki_data[wiki_data.ntokens != 1]))
+    print('Maximum number of tokens for an instance: %i' % max(wiki_data.ntokens))
+
+def ling_char():
+    global wiki_data
+    # Filter to take only #tokens = 1 and at least one complex annotation
+    wiki_data = wiki_data[(wiki_data.ntokens == 1) & (wiki_data.cannotators > 1)]
+    wiki_data['len_tokens'] = wiki_data.tokens.apply(lambda x: len(x[0]))
+    wiki_data['freq_tokens'] = wiki_data.tokens.apply(lambda x: word_frequency(str(x[0]), 'en'))
+    wiki_data['pos_tag'] = wiki_data.tokens.apply(lambda x: x[-1].pos_)
+    print(len(wiki_data))
+
+    print('Pearson correlation length and complexity: ', round(wiki_data.len_tokens.corr(wiki_data.prob),2))
+    print('Pearson correlation frequency and complexity: ', round(wiki_data.freq_tokens.corr(wiki_data.prob), 2))
+
+    utils.save_plot(wiki_data.len_tokens, wiki_data.prob, 'length of tokens', 'probabilistic complexity',
+                 'Probabilistic complexity by length of tokens', 'len_tokens_prob_scatter.png', 'images/')
+    utils.save_plot(wiki_data.freq_tokens, wiki_data.prob, 'frequency of tokens', 'probabilistic complexity',
+                 'Probabilistic complexity by frequency of tokens', 'freq_tokens_prob_scatter.png', 'images/')
+    utils.save_plot(wiki_data.pos_tag, wiki_data.prob, 'POS tag', 'probabilistic complexity',
+                 'Probabilistic complexity by POS tags', 'pos_tags_prob_scatter.png', 'images/')
+
+if __name__ == '__main__':
+    """
+        `Data Analysis`
+    """
+    # Load the parameters
+    args = parser.parse_args()
+    args_dict = vars(args)
+
+    if args.exercise == 'all':
+        exercise = range(1, 9)
+    else:
+        exercise = [int(args.exercise)]
+
+    # Load the data
+    data_file = open(args.data_dir + "sentences.txt", encoding="utf8", errors='ignore')
+    data = data_file.read()
+    data_file.close()
+
+    # Load English tokenizer, tagger, parser and NER
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(data)
+
+    # Load and Process Wiki Data
+    if any(ex in range(7,9) for ex in exercise):
+        nlp = spacy.load("en_core_web_sm")
+        wiki_data = pd.read_csv(args.data_dir_stat + "WikiNews_Train.tsv", sep='\t', header=None, usecols=[4, 7, 8, 9, 10])
+        process_wiki()
+
+    # Load function names for each exercise
+    functions = {6: explore_dataset, 7: basic_stat, 8: ling_char}
+
+
+#Nextpart (original) --> Andreea look at this!
+
 
 # Each baseline returns predictions for the test data. The length and frequency baselines determine a threshold using the development data.
 def most_frequent(List):
