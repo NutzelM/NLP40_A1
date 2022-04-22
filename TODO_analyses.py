@@ -14,7 +14,7 @@ training_data_file.close()
 nlp = spacy.load('en_core_web_sm')
 doc = nlp(training_data)
 
-which_exercise = [1,2,3] # you can change this to only run one or less for efficiency :)
+which_exercise = [5] # you can change this to only run one or less for efficiency :)
 
 # 1 -----------------------
 if 1 in which_exercise:
@@ -119,39 +119,30 @@ if 2 in which_exercise:
     print(class_table)
 #3 ------------------------
 if 3 in which_exercise:
-    # generate bigrams trigrams
-    bigram_token=[]
-    trigram_token=[]
-    bigram_POS=[]
-    trigram_POS=[]
-    bigram_POS_frequencies = Counter()
-    trigram_POS_frequencies = Counter()
-    bigram_token_frequencies = Counter()
-    trigram_token_frequencies = Counter()
-    for sentence in doc.sents:
-        for idx in range(len(sentence) - 2):
-            bigram_token.append((sentence[idx].text, sentence[idx + 1].text))
-            trigram_token.append((sentence[idx].text, sentence[idx + 1].text, sentence[idx + 2].text ))
-            bigram_POS.append((sentence[idx].tag_, sentence[idx + 1].tag_))
-            trigram_POS.append((sentence[idx].tag_, sentence[idx + 1].tag_, sentence[idx + 2].tag_ ))
+   
+    def get_ngram(text, ngram):
+        temp = zip(*[text[i:] for i in range(0, ngram)])
+        return [' '.join(ngram) for ngram in temp]
         
-        bigram_token.append((sentence[len(sentence) - 2].text,sentence[len(sentence) - 1].text))
-        bigram_token.append((sentence[len(sentence) - 1].text))
-        trigram_token.append((sentence[len(sentence) - 2].text, sentence[len(sentence) - 1].text))
-        bigram_POS.append((sentence[len(sentence) - 2].tag_,sentence[len(sentence) - 1].tag_))
-        bigram_POS.append((sentence[len(sentence) - 1].tag_))
-        trigram_POS.append((sentence[len(sentence) - 2].tag_, sentence[len(sentence) - 1].tag_))
-    bigram_POS_frequencies.update(bigram_POS)
-    trigram_POS_frequencies.update(trigram_POS)
-    bigram_token_frequencies.update(bigram_token)
-    trigram_token_frequencies.update(trigram_token)
+    pos = []
+    tokens = []
+    for token in doc:
+        if not token.is_space:
+            pos.append(token.tag_)
+            tokens.append(token.text)
 
-    most_common_bigram_POS = bigram_POS_frequencies.most_common(3)
-    most_common_trigram_POS =  trigram_POS_frequencies.most_common(3)
-    most_common_bigram_token = bigram_token_frequencies.most_common(3)
-    most_common_trigram_token = trigram_token_frequencies.most_common(3)
-    print(f"Token bigrams:\n {most_common_bigram_POS } \n Token trigrams: \n {most_common_trigram_POS } \n POS bigrams: \n {most_common_bigram_token} \n POS trigrams: \n {most_common_trigram_token} \n")
+    bigram_tokens = Counter(get_ngram(tokens, 2))
+    trigram_tokens = Counter(get_ngram(tokens, 3))
 
+    bigram_pos = Counter(get_ngram(pos, 2))
+    trigram_pos = Counter(get_ngram(pos, 3))
+
+    #TO-DO: Maike, Giulia - speak about Maike taking unigrams for bigrams and bigrams for trigrams
+    print('Token bigrams: ', bigram_tokens.most_common(3))
+    print('Token trigrams: ', trigram_tokens.most_common(3))
+    print('POS bigrams: ', bigram_pos.most_common(3))
+    print('POS trigrams:', trigram_pos.most_common(3))
+    print('\n')
 
 # 4.	Lemmatization (1 point)
 # Provide an example for a lemma that occurs in more than two inflections in the dataset. 
@@ -192,12 +183,11 @@ if 5 in which_exercise:
     freq_labels = Counter()
     for sentence in doc.sents:
         for ent in sentence.ents:
-            freq_ents.update([ent.text])
-            freq_labels.update([ent.label_])
+            if ent.text != '/n' and ent.text != '\\':
+                freq_ents.update([ent.text])
+               # print(ent.text)
+                freq_labels.update([ent.label_])
         num_ents = len(freq_ents)
         num_labels = len(freq_labels)
     print(f"Number of named entities: {num_ents}, \n Number of different entity labels:  {num_labels}")
 
-# it still counts enter (\\) as entity and i dunno whyy
-    # print(freq_ents)
-    # print(freq_labels)
