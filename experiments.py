@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import pandas as pd
 from subprocess import check_call
 import sys
 import utils
@@ -42,6 +43,24 @@ def get_wa_f1(dir_exp, eval_metric):
     metrics = utils.Params(json_metrics_path)
     return round(getattr(metrics, eval_metric, None),2)
 
+# Run evaluation for best and worst models to get some differences
+def eval_model(hp, hp_val):
+    # Launch evaluation for hp_val
+    model_dir = 'experiments/hyperparams/' + hp + '/' + hp + '_' + str(hp_val) + '/'
+    cmd = "{python} evaluate.py --model_dir={model_dir}".format(python=PYTHON, model_dir=model_dir)
+    print(cmd)
+    check_call(cmd, shell=True)
+
+def get_some_differences(hp, hp_max, hp_min):
+    df_max = pd.read_csv('experiments/hyperparams/' + hp + '/' + hp + '_' + str(hp_max) + '/model_output.tsv', sep='\t')
+    df_min = pd.read_csv('experiments/hyperparams/' + hp + '/' + hp + '_' + str(hp_min) + '/model_output.tsv', sep='\t')
+
+    df_max.columns = ['word', 'gold', 'pred_max']
+    df_min.columns = ['word', 'gold', 'pred_min']
+    print('Some differences for %s - %s vs %s' % (hp, str(hp_min), str(hp_max)))
+    df_diff = df_min.merge(df_max).dropna().drop_duplicates()
+    print(df_diff[df_diff.pred_min != df_diff.pred_max][0:5])
+
 if __name__ == "__main__":
     args = parser.parse_args()
     experiments = {
@@ -68,6 +87,7 @@ if __name__ == "__main__":
         # Perform hyperparameter search
         wa_f1s = []
 
+        print('Training models...')
         for hyperpar in exp['param_list']:
             # Modify the relevant parameter in params
             setattr(params, exp_name, hyperpar)
@@ -79,5 +99,14 @@ if __name__ == "__main__":
             # Get output weighted average F1 (wa_f1) from metrics_val_best_weights.json
             wa_f1s.append(get_wa_f1(exp['parent_dir'] + job_name, args.eval_metric))
 
+        print('Create plot...')
         utils.save_plot([str(hp) for hp in exp['param_list']], wa_f1s, exp['hp_name'], 'Weighted Average F1',
                         exp['plot_title'], exp_name+'.png', 'images/hyperparams/', 'bar')
+
+        print('Evaluate best and worst hyperparams...')
+        max_hp = exp['param_list'][wa_f1s.index(max(wa_f1s))]
+        min_hp = exp['param_list'][wa_f1s.index(min(wa_f1s))]
+        eval_model(exp_name, max_hp)
+        eval_model(exp_name, min_hp)
+        print('\n')
+        get_some_differences(exp_name, max_hp, min_hp)
