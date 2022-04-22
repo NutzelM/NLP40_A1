@@ -1,9 +1,11 @@
 numpy
-Pillow
-torch>=1.2
+Pillowtorch>=1.2
 tabulate
 tqdm
-spacy=3.2
+spacy==3.2
 nltk
 pandas
 wordfreq
+matplotlib
+scikit_learn==1.0.2
+torch==1.11.0
