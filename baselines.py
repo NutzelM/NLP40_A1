@@ -11,6 +11,7 @@ import spacy
 import numpy as np
 import pandas as pd
 import random
+import utils
 import os
 from collections import Counter
 from sklearn.metrics import accuracy_score
@@ -59,7 +60,6 @@ def ling_char():
     wiki_data['len_tokens'] = wiki_data.tokens.apply(lambda x: len(x[0]))
     wiki_data['freq_tokens'] = wiki_data.tokens.apply(lambda x: word_frequency(str(x[0]), 'en'))
     wiki_data['pos_tag'] = wiki_data.tokens.apply(lambda x: x[-1].pos_)
-    print(len(wiki_data))
 
     print('Pearson correlation length and complexity: ', round(wiki_data.len_tokens.corr(wiki_data.prob),2))
     print('Pearson correlation frequency and complexity: ', round(wiki_data.freq_tokens.corr(wiki_data.prob), 2))
@@ -70,41 +70,6 @@ def ling_char():
                  'Probabilistic complexity by frequency of tokens', 'freq_tokens_prob_scatter.png', 'images/')
     utils.save_plot(wiki_data.pos_tag, wiki_data.prob, 'POS tag', 'probabilistic complexity',
                  'Probabilistic complexity by POS tags', 'pos_tags_prob_scatter.png', 'images/')
-
-if __name__ == '__main__':
-    """
-        `Data Analysis`
-    """
-    # Load the parameters
-    args = parser.parse_args()
-    args_dict = vars(args)
-
-    if args.exercise == 'all':
-        exercise = range(1, 9)
-    else:
-        exercise = [int(args.exercise)]
-
-    # Load the data
-    data_file = open(args.data_dir + "sentences.txt", encoding="utf8", errors='ignore')
-    data = data_file.read()
-    data_file.close()
-
-    # Load English tokenizer, tagger, parser and NER
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(data)
-
-    # Load and Process Wiki Data
-    if any(ex in range(7,9) for ex in exercise):
-        nlp = spacy.load("en_core_web_sm")
-        wiki_data = pd.read_csv(args.data_dir_stat + "WikiNews_Train.tsv", sep='\t', header=None, usecols=[4, 7, 8, 9, 10])
-        process_wiki()
-
-    # Load function names for each exercise
-    functions = {6: explore_dataset, 7: basic_stat, 8: ling_char}
-
-
-#Nextpart (original) --> Andreea look at this!
-
 
 # Each baseline returns predictions for the test data. The length and frequency baselines determine a threshold using the development data.
 def most_frequent(List):
@@ -156,7 +121,10 @@ def baseline(train_labels, test_input, test_labels, baseline = 'majority', thres
     return accuracy, df_out
 
 def get_data():
-    global train_sentences, train_labels, dev_sentences, dev_labels, test_sentences, test_labels
+    train_path = "data/preprocessed/train/"
+    dev_path = "data/preprocessed/val/"
+    test_path = "data/preprocessed/test/"
+
     # Note: this loads all instances into memory. If you work with bigger files in the future, use an iterator instead.
     with open(train_path + "sentences.txt", encoding="utf8", errors='ignore') as sent_file:
         train_sentences = sent_file.readlines()
@@ -173,7 +141,9 @@ def get_data():
     with open(test_path + "labels.txt", encoding="utf8", errors='ignore') as test_label_file:
         test_labels = test_label_file.readlines()
 
-def run_threshold_exp():
+    return (train_sentences, train_labels, dev_sentences, dev_labels, test_sentences, test_labels)
+
+def run_threshold_exp(train_labels, dev_sentences, dev_labels):
     experiments = {'length': range(1, 21), 'frequency': np.arange(0, 0.1, 0.005)}
 
     for bsln, thresholds in experiments.items():
@@ -183,14 +153,14 @@ def run_threshold_exp():
             print('Accuracy on dev, %s threshold %.3f baseline: %.4f' % (bsln, thrsh, accuracy))
         print("\n")
 
-if __name__ == '__main__':
-    train_path = "data/preprocessed/train/"
-    dev_path = "data/preprocessed/val/"
-    test_path = "data/preprocessed/test/"
+def written_ex():
+    print('Exercise 9 is written in the report')
+
+def create_baselines():
     test_out_path = "experiments/"
 
-    get_data()
-    run_threshold_exp()
+    train_sentences, train_labels, dev_sentences, dev_labels, test_sentences, test_labels = get_data()
+    run_threshold_exp(train_labels, dev_sentences, dev_labels)
 
     # Run all baselines
     datasets = {'dev': {'sentences': dev_sentences, 'labels': dev_labels},
@@ -199,10 +169,36 @@ if __name__ == '__main__':
 
     for env in ['dev', 'test']:
         for bsln in ['majority', 'random', 'length', 'frequency']:
-            accuracy, df_out = baseline(train_labels, datasets[env]['sentences'], datasets[env]['labels'], bsln, thresholds[bsln])
+            accuracy, df_out = baseline(train_labels, datasets[env]['sentences'], datasets[env]['labels'], bsln,
+                                        thresholds[bsln])
             print('Accuracy on %s, %s baseline: %.2f' % (env, bsln, accuracy))
             if env == 'test':
                 if not os.path.exists(test_out_path + bsln + '_model'):
                     os.makedirs(test_out_path + bsln + '_model')
                 df_out.to_csv(test_out_path + bsln + "_model/model_output.tsv", sep="\t", index=False, header=False)
+        print('\n')
+
+if __name__ == '__main__':
+    # Load the parameters
+    args = parser.parse_args()
+
+    if args.exercise == 'all':
+        exercise = range(6, 11)
+    else:
+        exercise = [int(args.exercise)]
+
+    # Load and Process Wiki Data
+    if any(ex in [7, 8] for ex in exercise):
+        print('Processing wiki file...')
+        nlp = spacy.load("en_core_web_sm")
+        wiki_data = pd.read_csv(args.data_dir_stat + "WikiNews_Train.tsv", sep='\t', header=None,
+                                usecols=[4, 7, 8, 9, 10])
+        process_wiki()
+
+    # Load function names for each exercise
+    functions = {6: explore_dataset, 7: basic_stat, 8: ling_char, 9: written_ex, 10: create_baselines}
+
+    for ex in exercise:
+        print('-----------------Running exercise %i-----------------' % ex)
+        functions[ex]()
         print('\n')

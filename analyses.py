@@ -1,129 +1,86 @@
-from decimal import DivisionByZero
-from importlib.resources import open_text
-from shutil import which
-import spacy 
-from collections import Counter
+import argparse
+import spacy
 import numpy as np
 import pandas as pd
-from nltk import ngrams
-from nltk import FreqDist
+from collections import Counter
 
-training_data_file = open("data/preprocessed/train/sentences.txt", "r")
-training_data  = training_data_file.read()
-training_data_file.close()
-nlp = spacy.load('en_core_web_sm')
-doc = nlp(training_data)
+# Pandas settings
+pd.set_option('display.max_columns', None)
 
-which_exercise = [1,2] # you can change this to only run one or less for efficiency :)
+# Run with arguments, for example: --exercise 3
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
+parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
+parser.add_argument('--exercise', default='all')
 
-# 1 -----------------------
-if 1 in which_exercise:
-    # computes word frequences, outputs dict.
-    def numFrequencies(doc):
-        word_frequencies = Counter()
-        for sentence in doc.sents:
-            words = []
-            for token in sentence: 
-                # Let's filter out punctuation
-                if not token.is_punct:
-                    words.append(token.text)
-            word_frequencies.update(words)
-        return word_frequencies
+def get_words_data(text):
+    words, lens = [], []
+    for token in text:
+        if token.is_punct != True:
+            words.append(token.text)
+            lens.append(len(token.text))
+    if len(lens) != 0:
+        avg_len = sum(lens) / len(lens)
+    else:
+        avg_len = 0
+    return len(words), avg_len
 
-    # Number of tokens 
-    def numTokens(doc):
-        return len(doc)
+def get_average_num_words(text):
+    sentences = list(text.sents)
+    avg = []
+    for sent in sentences:
+        avg.append(get_words_data(sent)[0])
+    return sum(avg) / len(avg)
 
-    def numWordsAndTypes(doc):
-        word_frequencies = numFrequencies(doc)
-        return sum(word_frequencies.values()) , len(word_frequencies.keys())
+def tokenization():
+    # The number of tokens such as words, numbers, punctuation marks etc.
+    tokens = [token.text for token in doc]
+    print("Number of tokens: %i" % len(tokens))
+    # The number of unique tokes
+    print("Number of types: %i" % len(set(tokens)))
+    words_data = get_words_data(doc)
+    # The number of words after removing stopwords and punctuations
+    print("Number of words: %i" % words_data[0])
+    # The number of average words per sentence
+    print("Average number of words per sentence: %.2f" % get_average_num_words(doc))
+    print("Average word length: %.2f" % words_data[1])
 
+def words():
+    tags = []
+    for token in doc:
+        if not token.is_space:
+            tags.append(token.tag_)
 
-    # Number of types : all the words without punctuation and repeat
-    # Number of words : all the words without punctuation etc 
-    num_tokens = numTokens(doc)
-    num_words, num_types = numWordsAndTypes(doc)
+    # Get 10 most frequent tags
+    unique_elements, frequency = np.unique(tags, return_counts=True)
+    sorted_indexes = np.argsort(frequency)[::-1]
+    fgPOS = unique_elements[sorted_indexes][:10]
+    freq = frequency[sorted_indexes][:10]
 
+    freq_tokens, infreq_tokens, uPOS = [], [], []
+    for tag in fgPOS:
+        # Get most frequent and infrequent words with that tag
+        words = [token.text for token in doc if token.tag_ == tag]
+        words_tally = Counter(words)
+        freq_tokens.append(', '.join([word for word, cnt in words_tally.most_common(3)]))
+        infreq_tokens.append(words_tally.most_common()[-1][0])
+        # Get POS for that tag
+        uPOS.append(next(token.pos_ for token in doc if token.tag_ == tag))
 
-    # Average number of words per sentence
-    sentences = doc.sents
-    num_words_sentence_all = []
-    for sentence in sentences:
-        num_words_sentence, num_types_sentence = numWordsAndTypes(sentence)
-        num_words_sentence_all.append(num_words_sentence)
+    # Build DataFrame for output
+    word_class = pd.DataFrame({'Fg POS-tag': fgPOS,
+                               'Universal POS-tag': uPOS,
+                               'Occurrences': freq[:10],
+                               'Relative Tag Freq(%)': np.around(freq[:10] / len(tags),2),
+                               '3 most frequent tokens': freq_tokens,
+                               'Example infrequent token': infreq_tokens})
+    print(word_class)
 
-    mean_num_words_per_sentence = np.mean(num_words_sentence_all)
+def get_ngram(text, ngram):
+    temp = zip(*[text[i:] for i in range(0, ngram)])
+    return [' '.join(ngram) for ngram in temp]
 
-    # Average word length
-    all_words = numFrequencies(doc).keys()
-    word_length = []
-    for word in all_words:
-        word_length.append(len(word))
-
-    mean_word_lenth = np.mean(word_length)
-
-
-    print(f"Number of tokens: \n {num_tokens} \n Number of types: \n {num_types} \n Number of words: \n {num_words} \n Average number of words per sentence: \n {mean_num_words_per_sentence} \n Average word length: {mean_word_lenth}\n")
-
-
-if 2 in which_exercise:
-    ## 2 -----------------------
-    # DO THEY ONLY WANT WORDS OR ALSO PUNCTIATION
-    fPOS_frequencies = Counter()
-    fPOS = []
-    # dictionary for fine --> unif.
-    unfPOS_dict = {}
-    for sentence in doc.sents:
-        for token in sentence:
-            fPOS.append(token.tag_)
-            if token.tag_ not in unfPOS_dict.keys():
-                unfPOS_dict[token.tag_] = token.pos_
-
-    fPOS_frequencies.update(fPOS)
-    #print(fPOS_frequencies)
-
-    fPOS10 = []
-    occ10 = []
-    tag_freq = []
-    for fPOStag, cnt in fPOS_frequencies.most_common(10):
-        fPOS10.append(fPOStag) #Finegrained POS tag
-        occ10.append(cnt) # occurancy of tag
-        tag_freq.append((cnt/num_tokens)) # frequency of tag
-
-    def findWordsTag(doc, tag): 
-        word_frequencies_tag = Counter()
-        for sentence in doc.sents:
-            words_tag= []
-            for token in sentence: 
-                if token.tag_ == tag:
-                    words_tag.append(token.text)
-            word_frequencies_tag.update(words_tag)
-        return word_frequencies_tag
-
-    # find 3 most and least frequent words with tags in fPOS10
-    most_freq_tokens = []
-    least_freq_tokens = []
-    unfPOS10 = []
-    for tag in fPOS10:
-        unfPOS10.append(unfPOS_dict[tag])
-        freq_token_tag = findWordsTag(doc, tag)
-        freq_tokens = []
-        print(f"for tag {tag} the most common are : \n {freq_token_tag.most_common(3)} ")
-        for token, cnt in freq_token_tag.most_common(3):
-            freq_tokens.append(token)
-        most_freq_tokens.append((tuple(freq_tokens)))
-        least_freq_tokens.append(freq_token_tag.most_common()[:-2:-1][0][0])
-
-    most_freq_words_tag =  findWordsTag(doc, fPOS10[0])
-    class_table = pd.DataFrame({'Finegrained POS-tag' : fPOS10 ,'Universal POS-tag' : unfPOS10, 'Occurances': occ10, 'Relative Tag Frequency (%)' : tag_freq, '3 most frequent tokens' : most_freq_tokens, 'Infrequent token': least_freq_tokens} )
-    print(class_table)
-#3 ------------------------
-if 3 in which_exercise:
-   
-    def get_ngram(text, ngram):
-        temp = zip(*[text[i:] for i in range(0, ngram)])
-        return [' '.join(ngram) for ngram in temp]
-        
+def ngrams():
     pos = []
     tokens = []
     for token in doc:
@@ -142,52 +99,70 @@ if 3 in which_exercise:
     print('Token trigrams: ', trigram_tokens.most_common(3))
     print('POS bigrams: ', bigram_pos.most_common(3))
     print('POS trigrams:', trigram_pos.most_common(3))
-    print('\n')
 
-# 4.	Lemmatization (1 point)
-# Provide an example for a lemma that occurs in more than two inflections in the dataset. 
-# Lemma:
-# Inflected Forms: 
-# Example sentences for each form: 
-
-
-
-#-----------
-if 4 in which_exercise:
-    def find3inflictions(doc):
-        tokens = {}
-        sentences = {}
-        for sentence in doc.sents:
-            for token in sentence:
-                if (token.lemma_ != token.text): #then there is an infiction
-                    if token.lemma_ not in tokens.keys():
-                        tokens[token.lemma_] = [token.text]
-                        sentences[token.lemma_] = [sentence]
-                    else:
-                        # if infliction did not exist, add to list
-                        if token.text not in tokens[token.lemma_]:
-                            tokens[token.lemma_].append(token.text)
-                            sentences[token.lemma_].append(sentence)
-                    if len(tokens[token.lemma_]) == 3:
-                        return token.lemma_, tokens[token.lemma_], sentences[token.lemma_]
-        return None
-
-    lemma, words, sentences = find3inflictions(doc)  
-    print(lemma)
-    print(words)
-    print(f"Lemma: {lemma},\n Inflected Forms: {words}, \n Example sentences for each form: \n {sentences}")
-
-#--- 
-if 5 in which_exercise:
-    freq_ents = Counter()
-    freq_labels = Counter()
+def lemmatization():
+    tokens = {}
+    sentences = {}
     for sentence in doc.sents:
-        for ent in sentence.ents:
-            if ent.text != '/n' and ent.text != '\\':
-                freq_ents.update([ent.text])
-               # print(ent.text)
-                freq_labels.update([ent.label_])
-        num_ents = len(freq_ents)
-        num_labels = len(freq_labels)
-    print(f"Number of named entities: {num_ents}, \n Number of different entity labels:  {num_labels}")
+        for token in sentence:
+            if (not token.is_space and (token.lemma_ != token.text.lower())):  # then there is an inflection
+                if token.lemma_ not in tokens.keys():
+                    tokens[token.lemma_] = [token.text]
+                    sentences[token.lemma_] = [sentence]
+                else:
+                    # if infliction did not exist, add to list
+                    if token.text not in tokens[token.lemma_]:
+                        tokens[token.lemma_].append(token.text)
+                        sentences[token.lemma_].append(sentence)
+                if len(tokens[token.lemma_]) == 3:
+                    print('Lemma: ', token.lemma_)
+                    print('Inflected Forms: ', tokens[token.lemma_])
+                    print('Example sentences for each form: ', sentences[token.lemma_])
+                    return
+
+def ner():
+    ne, ne_labels = [], []
+    for ent in doc.ents:
+        ne.append(ent.text)
+        ne_labels.append(ent.label_)
+    print('Number of named entities: ', len(ne))
+    print('Number of unique named entities: ', len(set(ne)))
+    print('Number of different entity labels: ', len(set(ne_labels)))
+
+    for i, sentence in enumerate(doc.sents):
+        print(sentence)
+        print('Named entities: ', [ent.text for ent in sentence.ents])
+        if i==4: break
+
+if __name__ == '__main__':
+    """
+        `Data Analysis`
+    """
+    # Load the parameters
+    args = parser.parse_args()
+    args_dict = vars(args)
+
+    if args.exercise == 'all':
+        exercise = range(1, 6)
+    else:
+        exercise = [int(args.exercise)]
+
+    # Load the data
+    data_file = open(args.data_dir + "sentences.txt", encoding="utf8", errors='ignore')
+    data = data_file.read()
+    data_file.close()
+
+    # Load English tokenizer, tagger, parser and NER
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(data)
+
+    # Load function names for each exercise
+    functions = {1: tokenization, 2: words, 3: ngrams, 4: lemmatization, 5: ner}
+
+    for ex in exercise:
+        print('-----------------Running exercise %i-----------------' % ex)
+        functions[ex]()
+        print('\n')
+
+
 
