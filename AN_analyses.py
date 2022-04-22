@@ -14,7 +14,7 @@ pd.set_option('display.max_columns', None)
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
 parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
-parser.add_argument('--exercise', default='all')
+parser.add_argument('--exercise', default='3')
 
 def get_words_data(text):
     words, lens = [], []
@@ -50,7 +50,10 @@ def tokenization():
     print("\n")
 
 def words():
-    tags = [token.tag_ for token in doc]
+    tags = []
+    for token in doc:
+        if not token.is_space:
+            tags.append(token.tag_)
 
     # Get 10 most frequent tags
     unique_elements, frequency = np.unique(tags, return_counts=True)
@@ -83,11 +86,16 @@ def get_ngram(text, ngram):
     return [' '.join(ngram) for ngram in temp]
 
 def ngrams():
-    tokens = [token.text for token in doc]
+    pos = []
+    tokens = []
+    for token in doc:
+        if not token.is_space:
+            pos.append(token.tag_)
+            tokens.append(token.text)
+
     bigram_tokens = Counter(get_ngram(tokens, 2))
     trigram_tokens = Counter(get_ngram(tokens, 3))
 
-    pos = [token.tag_ for token in doc]
     bigram_pos = Counter(get_ngram(pos, 2))
     trigram_pos = Counter(get_ngram(pos, 3))
 
@@ -103,7 +111,7 @@ def lemmatization():
     sentences = {}
     for sentence in doc.sents:
         for token in sentence:
-            if (token.lemma_ != token.text.lower()):  # then there is an inflection
+            if (not token.is_space and (token.lemma_ != token.text.lower())):  # then there is an inflection
                 if token.lemma_ not in tokens.keys():
                     tokens[token.lemma_] = [token.text]
                     sentences[token.lemma_] = [sentence]
@@ -125,7 +133,6 @@ def ner():
         ne.append(ent.text)
         ne_labels.append(ent.label_)
     print('Number of named entities: ', len(ne))
-    #TO-DO Why is Maike counting the unique NE?
     print('Number of unique named entities: ', len(set(ne)))
     print('Number of different entity labels: ', len(set(ne_labels)))
 
@@ -195,7 +202,7 @@ if __name__ == '__main__':
 
     # Load the data
     data_file = open(args.data_dir + "sentences.txt", encoding="utf8", errors='ignore')
-    data = data_file.read().replace('\n', '')
+    data = data_file.read()
     data_file.close()
 
     # Load English tokenizer, tagger, parser and NER
