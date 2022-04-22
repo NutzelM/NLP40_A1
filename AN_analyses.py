@@ -14,7 +14,7 @@ pd.set_option('display.max_columns', None)
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data/preprocessed/train/', help="Directory containing the dataset")
 parser.add_argument('--data_dir_stat', default='data/original/english/', help="Directory containing the Wiki dataset")
-parser.add_argument('--exercise', default='3')
+parser.add_argument('--exercise', default='all')
 
 def get_words_data(text):
     words, lens = [], []
