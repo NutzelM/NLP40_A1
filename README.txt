@@ -2,7 +2,7 @@ This project contains code for part 1 of the course Natural Language Processing 
 This particular file contains the code and answers for assignment 1 for the NLP course 2022, written by by Andreea Hazu, Maike Nützel & Giulia Bössenecker
 
 Important:
-AN_analyses.py can be ignored.
+default_analyses.py can be ignored.
 The code for exercise 14 can be found in experiments.py
 
 References:
@@ -13,12 +13,11 @@ The data in data/original is a small subset from http://sites.google.com/view/cw
 
 The data in data/preprocessed has been processed by Sian Gooding for her submission to the shared task (https://github.com/siangooding/cwi/tree/master/CWI%20Sequence%20Labeller).
 
-
-Our task:
+Task:
 Make sure to install the libraries in requirements.txt.
 
-- For part A of the assignment, we need to provide linguistic analyses in TODO_analyses.py using spacy.
-- For part B of the assignment, we need to calculate baselines in TODO_baselines.py. The existing code snippet is supposed to provide some guidance but you can delete it and start from scratch if you find it irritating. Keep in mind to determine the thresholds for the baselines on the training data.
-- For part C of the assignment, we need to build the vocabulary and train the model. Inspect the code to understand what is happening. Implement functions to evaluate the output of the model and the baselines in TODO_detailed_evaluation.py.
-
-Your code will not be graded but it should be well documented and support the results of your submission. Your submission is only complete with the code. We will sporadically check the completeness and quality of the code.
+- For part A of the assignment, linguistic analyses was provided in in analyses.py using spacy.
+- For part B of the assignment, we calculated baselines in baselines.py.
+- For part C of the assignment, we built the vocabulary and trained the model.
+- We inplemented functions to evaluate the output of the LTSM model and the baselines in detailed_evaluation.py.
+- Additional experiments were ran for hyperparameter tunning in experiments.py.
